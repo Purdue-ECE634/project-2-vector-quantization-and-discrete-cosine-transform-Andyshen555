@@ -4,7 +4,7 @@ import math
 from scipy.fftpack import dct, idct
 from enum import Enum
 
-class Direction(Enum):
+class DCTtable(Enum):
     right = 0
     lowerL = 1
     down = 2
@@ -33,52 +33,52 @@ def compute_coeff(patch, K):
   result = np.zeros_like(patch)	
   i = 0
   j = 0
-  direction = Direction.right
+  next = DCTtable.right
 
   for k in range(K):
     result[i, j] = patch[i, j]
-    if direction == Direction.right:
+    if next == DCTtable.right:
       if k == 0: 
         j += 1
-        direction = Direction.upperR
+        next = DCTtable.upperR
       else: 
         i +=1
         j -= 1
-        direction = Direction.upperR
+        next = DCTtable.upperR
 
-    elif direction == Direction.upperR:
+    elif next == DCTtable.upperR:
       if j == 0:
         i += 1
-        direction = Direction.lowerL
+        next = DCTtable.lowerL
       else:
         i += 1
         j -= 1
-        direction = Direction.upperR	
+        next = DCTtable.upperR	
 
-    elif direction == Direction.down:
+    elif next == DCTtable.down:
       if i == 0:
         j +=1
-        direction = Direction.right
+        next = DCTtable.right
       elif j == (W-1):
         i += 1
-        direction = Direction.lowerL
+        next = DCTtable.lowerL
       else:
         i -= 1
         j += 1
-        direction = Direction.down
+        next = DCTtable.down
   
-    elif direction == Direction.lowerL:
+    elif next == DCTtable.lowerL:
       if i == (H-1): 
         j += 1
-        direction = Direction.right
+        next = DCTtable.right
       elif j == (W-1):
         i += 1
         j -= 1
-        direction = Direction.upperR
+        next = DCTtable.upperR
       else: 
         i -= 1
         j += 1
-        direction = Direction.down
+        next = DCTtable.down
 
   return result
 
