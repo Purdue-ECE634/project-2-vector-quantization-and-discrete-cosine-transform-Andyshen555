@@ -5,7 +5,7 @@ import os
 
 image_path = './img/goldhill.png'
 folder = './img/'
-lv = 4
+lv = 256
 
 def mse(img1, img2):
     return np.mean((img1 - img2) ** 2)
@@ -18,39 +18,41 @@ def psnr(img1, img2):
     return 20 * math.log10(PIXEL_MAX / math.sqrt(result))
 
 def vq(lut, image):
-	H, W = np.shape(image)
-	output = np.zeros((H, W))
+  H, W = image.shape[:2]  # Using tuple unpacking and slicing instead of np.shape
+  output = np.zeros_like(image)  # Using np.zeros_like for consistency
 
-	for i in range(H//4):
-		for j in range(W//4):
-			patch = image[4*i : 4*(i+1), 4*j : 4*(j+1)]
-			mse_max = np.inf
-			for k in range(lut.shape[0]):
-				mse_value = mse(patch, lut[k])
-				if mse_value < mse_max:
-					lv = k
-					mse_max = mse_value
-			output[4*i : 4*(i+1), 4*j : 4*(j+1)] = lut[lv]
-	return output
+  for i in range(H//4):
+    for j in range(W//4):
+      patch = image[4*i : 4*(i+1), 4*j : 4*(j+1)]
+      mse_min = np.inf  # Renaming variable for clarity
+      lv = 0  # Initializing lv outside the loop
+      for k in range(lut.shape[0]):
+        mse_value = mse(patch, lut[k])
+        if mse_value < mse_min:
+          mse_min = mse_value  # Replacing the max with min
+          lv = k
+        output[4*i : 4*(i+1), 4*j : 4*(j+1)] = lut[lv]
+  return output
+
 
 train_list = []
-# for image in os.listdir(folder):
-#   img = cv2.imread(folder+image)
-#   img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-#   H, W = np.shape(img)
-#   for i in range(H//4):
-#     for j in range(W//4):
-#       train_img = img[4*i : 4*(i+1), 4*j : 4*(j+1)]
-#       train_list.append(train_img)
+for image in os.listdir(folder):
+  img = cv2.imread(folder+image)
+  img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+  H, W = np.shape(img)
+  for i in range(H//4):
+    for j in range(W//4):
+      train_img = img[4*i : 4*(i+1), 4*j : 4*(j+1)]
+      train_list.append(train_img)
 # train_num = 10
 
-img = cv2.imread(image_path)
-img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-H, W = np.shape(img)
-for i in range(H//4):
-  for j in range(W//4):
-    train_img = img[4*i : 4*(i+1), 4*j : 4*(j+1)]
-    train_list.append(train_img)
+# img = cv2.imread(image_path)
+# img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+# H, W = np.shape(img)
+# for i in range(H//4):
+#   for j in range(W//4):
+#     train_img = img[4*i : 4*(i+1), 4*j : 4*(j+1)]
+#     train_list.append(train_img)
 
 train_num = len(train_list)
 lut = np.arange(0, 256, 256 // lv)
@@ -89,12 +91,15 @@ while(True):
 
   itr += 1
 
+
+img = cv2.imread(image_path)
+img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 output = vq(lut, img)
   
 PSNR = psnr(img, output)
 print(PSNR)
 
-cv2.imshow("img", img)
-cv2.imshow("output", output.astype(np.uint8))
-cv2.waitKey(0)
+# cv2.imshow("img", img)
+cv2.imwrite("output.png", output.astype(np.uint8))
+# cv2.waitKey(0)
 

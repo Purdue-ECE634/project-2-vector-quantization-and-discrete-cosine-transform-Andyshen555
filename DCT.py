@@ -83,7 +83,7 @@ def compute_coeff(patch, K):
   return result
 
 img = cv2.imread(image_path, 0)
-cv2.imshow("img", img)
+# cv2.imshow("img", img)
 output = np.zeros_like(img)
 H, W = np.shape(img)
 
@@ -97,6 +97,6 @@ for i in range(H//8):
 
 PSNR = psnr(img, output)
 print(PSNR)
-cv2.imshow("Reconstructed", output)
-cv2.waitKey(0)
+cv2.imwrite("output.png", output.astype(np.uint8))
+# cv2.waitKey(0)
 
